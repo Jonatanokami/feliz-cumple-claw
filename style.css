@@ -105,22 +105,32 @@ body.revealed .intro {
 }
 .hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.landscape-warn {
+.rotate-block {
   display: none;
   position: fixed;
-  bottom: calc(var(--sat-bottom) + 14px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
-  font-size: 13px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: rgba(0,0,0,.55);
-  border: 1px solid rgba(255,255,255,.15);
-  white-space: nowrap;
+  inset: 0;
+  z-index: 70;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  padding-top: calc(24px + var(--sat-top));
+  padding-bottom: calc(24px + var(--sat-bottom));
+  background:
+    radial-gradient(120% 90% at 50% 0%, #1c1440 0%, #0b0b22 45%, #050510 100%);
 }
-@media (orientation: landscape) and (max-height: 520px) {
-  .landscape-warn { display: block; }
+.rotate-emoji { font-size: 52px; margin-bottom: 16px; }
+.rotate-text {
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 700;
+  line-height: 1.4;
+  background: linear-gradient(180deg, #fff, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@media (orientation: landscape) {
+  .rotate-block { display: flex; }
 }
 
 .stage {

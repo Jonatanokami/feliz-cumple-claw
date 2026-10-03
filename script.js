@@ -382,7 +382,12 @@ openBtn.addEventListener("click", async () => {
   let needsPermission = false;
 
   try {
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock("portrait");
+    }
+  } catch (_) {}
 
+  try {
     if (typeof DeviceOrientationEvent !== "undefined" &&
         typeof DeviceOrientationEvent.requestPermission === "function") {
       needsPermission = true;
