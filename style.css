@@ -602,6 +602,10 @@ body.flipped .flip-inner { transform: rotateY(180deg); }
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  /* La tarjeta hereda pointer-events:none de .layer: se habilita acá
+     para poder scrollear el mensaje y tocar la foto */
+  pointer-events: auto;
+  touch-action: pan-y;
 }
 .back-title {
   flex-shrink: 0;
@@ -621,6 +625,11 @@ body.flipped .flip-inner { transform: rotateY(180deg); }
   line-height: 1.65;
   color: rgba(255,255,255,.9);
   white-space: pre-line;
+  /* body tiene touch-action:none (parallax): se re-habilita el scroll
+     vertical con el dedo solo acá */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .back-sign {
