@@ -405,6 +405,15 @@ body.revealed .scene { animation: enterCard 1.5s cubic-bezier(.2,.8,.25,1) forwa
   50% { opacity: .8; -webkit-filter: brightness(1.5); filter: brightness(1.5); }
 }
 
+/* Modo liviano (solo si el JS detecta <45fps al abrir): mitad de nodos
+   animados y brillo sin filter por frame. Los potentes ni lo notan. */
+body.lite .star:nth-child(2n) { display: none; }
+body.lite .speck:nth-child(2n) { display: none; }
+body.lite .speck::before {
+  animation-name: twinkle;
+  -webkit-animation-name: twinkle;
+}
+
 .layer-text { z-index: 6; display: flex; align-items: flex-end; justify-content: center; }
 .text-card {
   margin-bottom: 7%;

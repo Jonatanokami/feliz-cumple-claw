@@ -376,6 +376,22 @@ function showHint(text, ms = 3500) {
   hintTimer = setTimeout(() => hint.classList.remove("show"), ms);
 }
 
+function probePerformance() {
+  try {
+    let frames = 0;
+    const t0 = performance.now();
+    const tick = () => {
+      frames++;
+      if (performance.now() - t0 < 1000) {
+        requestAnimationFrame(tick);
+      } else if (frames < 45) {
+        document.body.classList.add("lite");
+      }
+    };
+    setTimeout(() => requestAnimationFrame(tick), 1000);
+  } catch (_) {}
+}
+
 openBtn.addEventListener("click", async () => {
   openBtn.disabled = true;
   let granted = false;
@@ -412,6 +428,7 @@ openBtn.addEventListener("click", async () => {
 
   started = true;
   document.body.classList.add("revealed");
+  probePerformance();
 
   try {
     if (bgMusic) {
