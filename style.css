@@ -26,7 +26,10 @@ body {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
+  /* pan-y (no none): el navegador combina el touch-action de los ancestros;
+     con none en body se anulaba el scroll táctil del mensaje trasero.
+     La página igual no scrollea (todo es fixed), el parallax no se afecta. */
+  touch-action: pan-y;
   position: fixed;
   inset: 0;
   width: 100%;
