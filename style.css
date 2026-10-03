@@ -1,0 +1,759 @@
+/* ══════════════════════════════════════════════
+   TARJETA DE CUMPLEAÑOS 3D — CSS
+   Solo transforms GPU (translate/rotate/opacity).
+   Sin librerías. Portrait-first, iPhone safe-area.
+   ══════════════════════════════════════════════ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #070714;
+  --ink: #fff;
+  --gold: #ffe9a8;
+  --pink: #ff9ed2;
+  --violet: #a78bfa;
+  --depth-z: 200px;
+  --card-max-w: 430px;
+  --sat-top: env(safe-area-inset-top, 0px);
+  --sat-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}
+
+/* ═══════════ INTRO ═══════════ */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: var(--sat-top);
+  padding-bottom: var(--sat-bottom);
+  background:
+    radial-gradient(120% 90% at 50% 0%, #1c1440 0%, #0b0b22 45%, #050510 100%);
+  transition: opacity 0.9s ease, visibility 0.9s;
+}
+body.revealed .intro {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.intro-inner { text-align: center; padding: 24px; position: relative; }
+.intro-emoji { font-size: 40px; margin-bottom: 12px; animation: introGlow 2.4s ease-in-out infinite; }
+@keyframes introGlow { 0%,100% { opacity: .7; transform: scale(1);} 50% { opacity: 1; transform: scale(1.12);} }
+.intro-title {
+  font-size: clamp(32px, 9vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  background: linear-gradient(180deg, #fff, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.open-btn {
+  margin-top: 32px;
+  appearance: none;
+  border: 1px solid rgba(255,233,168,.45);
+  background: linear-gradient(180deg, rgba(255,233,168,.18), rgba(255,233,168,.06));
+  color: var(--gold);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  padding: 16px 56px 16px 60px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(255,200,120,.25), inset 0 0 18px rgba(255,233,168,.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.open-btn:active { transform: scale(.95); }
+.open-btn:disabled { opacity: .6; }
+.intro-sub { margin-top: 14px; font-size: 13px; opacity: .5; }
+
+/* ═══════════ HINT ═══════════ */
+.hint {
+  position: fixed;
+  top: calc(var(--sat-top) + 18px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  z-index: 40;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  background: rgba(10,10,28,.65);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity .5s ease, transform .5s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══════════ LANDSCAPE WARN ═══════════ */
+.landscape-warn {
+  display: none;
+  position: fixed;
+  bottom: calc(var(--sat-bottom) + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.15);
+  white-space: nowrap;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .landscape-warn { display: block; }
+}
+
+/* ═══════════ STAGE / SCENE 3D ═══════════ */
+.stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1100px;
+  -webkit-perspective: 1100px;
+  padding-top: var(--sat-top);
+  padding-bottom: var(--sat-bottom);
+  opacity: 0;
+  transition: opacity 1s ease .15s;
+}
+body.revealed .stage { opacity: 1; }
+
+.scene {
+  position: relative;
+  width: min(92vw, var(--card-max-w));
+  height: min(78dvh, 640px);
+  min-height: 420px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #0a0a20;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 60px rgba(167,139,250,.15);
+  opacity: 0;
+  scale: .94;
+}
+/* Animación de entrada: UNA sola vez, después queda quieta */
+body.revealed .scene { animation: enterCard 1.5s cubic-bezier(.2,.8,.25,1) forwards; }
+@keyframes enterCard {
+  0%   { opacity: 0; scale: .9; filter: brightness(.4); }
+  60%  { opacity: 1; scale: 1.015; filter: brightness(1.15); }
+  100% { opacity: 1; scale: 1; filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.revealed .scene { animation-duration: .4s; }
+}
+
+.layer {
+  position: absolute;
+  inset: -6%; /* margen extra para que el parallax nunca muestre bordes */
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: none;
+}
+.layer-text { pointer-events: none; }
+
+/* ── CAPA 1: galaxia ── */
+.layer-galaxy { z-index: 1; }
+.galaxy-gradient {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 45% at 70% 20%, rgba(255,110,180,.35), transparent 70%),
+    radial-gradient(70% 55% at 25% 75%, rgba(120,80,255,.45), transparent 70%),
+    radial-gradient(50% 40% at 50% 50%, rgba(60,40,140,.5), transparent 75%),
+    linear-gradient(180deg, #150f38 0%, #0b0b26 45%, #050512 100%);
+}
+.galaxy-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.nebula { position: absolute; border-radius: 50%; filter: blur(40px); opacity: .55; }
+.nebula-a { width: 70%; height: 40%; left: -10%; top: 8%; background: radial-gradient(circle, rgba(255,120,200,.35), transparent 70%); }
+.nebula-b { width: 80%; height: 45%; right: -15%; bottom: 5%; background: radial-gradient(circle, rgba(90,120,255,.4), transparent 70%); }
+
+/* ── CAPA 2: estrellas ── */
+.layer-stars { z-index: 2; }
+.stars-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.star-field { position: absolute; inset: 0; }
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  /* Sin var() en shorthand: Safari/iOS invalida la declaración entera.
+     JS pisa duration/delay inline por estrella. */
+  animation-name: twinkle;
+  -webkit-animation-name: twinkle;
+  animation-duration: 2.2s;
+  -webkit-animation-duration: 2.2s;
+  animation-timing-function: cubic-bezier(.45, 0, .55, 1);
+  -webkit-animation-timing-function: cubic-bezier(.45, 0, .55, 1);
+  animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+  transform-origin: center;
+  -webkit-transform-origin: center;
+  will-change: transform, opacity;
+}
+/* Destacadas sutiles (~8%): mini cruz fina + halo chico, mismo ritmo
+   lento que las demás para que acompañen sin destellar. */
+.star--bright {
+  box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+  color: #fff;
+}
+.star--bright::before,
+.star--bright::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: currentColor;
+  border-radius: 1px;
+  pointer-events: none;
+  animation-duration: inherit;
+  -webkit-animation-duration: inherit;
+  animation-delay: inherit;
+  -webkit-animation-delay: inherit;
+  animation-timing-function: cubic-bezier(.45, 0, .55, 1);
+  -webkit-animation-timing-function: cubic-bezier(.45, 0, .55, 1);
+  animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+}
+.star--bright::before {
+  width: 150%;
+  min-width: 6px;
+  height: 1px;
+  transform: translate(-50%, -50%);
+  animation-name: flare;
+  -webkit-animation-name: flare;
+}
+.star--bright::after {
+  width: 1px;
+  min-height: 6px;
+  height: 150%;
+  transform: translate(-50%, -50%);
+  animation-name: flareV;
+  -webkit-animation-name: flareV;
+}
+/* Parpadeo de luz + scale in/out delicado: la estrella "se enciende"
+   (opacity .45→1) mientras late apenas en tamaño (.85→1.15).
+   En 2.5px varía ~0.75px: latido de luz, no bola que crece.
+   Sin var() ni filter animado: compone en GPU en Chrome y Safari. */
+@keyframes twinkle {
+  0%, 100% { opacity: .45; transform: translateZ(0) scale(.85); }
+  50% { opacity: 1; transform: translateZ(0) scale(1.15); }
+}
+@-webkit-keyframes twinkle {
+  0%, 100% { opacity: .45; -webkit-transform: translateZ(0) scale(.85); transform: translateZ(0) scale(.85); }
+  50% { opacity: 1; -webkit-transform: translateZ(0) scale(1.15); transform: translateZ(0) scale(1.15); }
+}
+@keyframes flare {
+  0%, 100% { opacity: .3; transform: translate(-50%, -50%) scaleX(.7); }
+  50% { opacity: .9; transform: translate(-50%, -50%) scaleX(1.2); }
+}
+@-webkit-keyframes flare {
+  0%, 100% { opacity: .3; -webkit-transform: translate(-50%, -50%) scaleX(.7); transform: translate(-50%, -50%) scaleX(.7); }
+  50% { opacity: .9; -webkit-transform: translate(-50%, -50%) scaleX(1.2); transform: translate(-50%, -50%) scaleX(1.2); }
+}
+@keyframes flareV {
+  0%, 100% { opacity: .3; transform: translate(-50%, -50%) scaleY(.7); }
+  50% { opacity: .9; transform: translate(-50%, -50%) scaleY(1.2); }
+}
+@-webkit-keyframes flareV {
+  0%, 100% { opacity: .3; -webkit-transform: translate(-50%, -50%) scaleY(.7); transform: translate(-50%, -50%) scaleY(.7); }
+  50% { opacity: .9; -webkit-transform: translate(-50%, -50%) scaleY(1.2); transform: translate(-50%, -50%) scaleY(1.2); }
+}
+
+/* Titileo forzado por pedido explícito: las estrellas y partículas animan
+   siempre, aun con "reducir movimiento" activado. Es un parpadeo lento y
+   suave (no strobo). La entrada de la tarjeta sí sigue respetando el ajuste
+   (ver regla de enterCard más arriba). */
+
+/* ── CAPA 3: constelación ── */
+.layer-constellation { z-index: 3; display: flex; align-items: flex-start; justify-content: center; }
+.constellation-wrap {
+  margin-top: 9%;
+  width: 62%;
+  max-width: 250px;
+  text-align: center;
+  filter: drop-shadow(0 0 12px rgba(180,200,255,.8));
+}
+.constellation-img { width: 100%; height: auto; display: block; }
+
+/* ── CAPA 4: foto ── */
+.layer-photo { z-index: 4; display: flex; align-items: center; justify-content: center; }
+.photo-halo {
+  position: absolute;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,200,140,.35) 0%, rgba(180,120,255,.22) 45%, transparent 70%);
+  filter: blur(18px);
+}
+.photo-frame {
+  position: relative;
+  width: 58%;
+  max-width: 240px;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 14%; /* baja la foto y libera la zona de Libra */
+}
+.photo-img {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* nunca deforma */
+  border-radius: 26px;
+  filter: drop-shadow(0 18px 40px rgba(0,0,0,.6)) drop-shadow(0 0 24px rgba(255,190,220,.25));
+  display: block;
+}
+/* Si la imagen no cargó (aún no pusiste friend.png), se oculta y muestra placeholder */
+.photo-img[src$="friend.png"]:not([data-loaded="1"]) { display: none; }
+.photo-placeholder {
+  position: absolute;
+  inset: 6% 4% 0 4%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 130px 130px 24px 24px;
+  border: 1.5px dashed rgba(255,255,255,.35);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  color: rgba(255,255,255,.75);
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.5;
+}
+.photo-placeholder small { opacity: .55; font-size: 12px; }
+.photo-placeholder-emoji { font-size: 34px; }
+.photo-frame.has-photo .photo-placeholder { display: none; }
+
+/* ── CAPA 5: foreground ── */
+.layer-foreground { z-index: 5; }
+.foreground-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.foreground-field { position: absolute; inset: 0; mix-blend-mode: screen; }
+.speck {
+  position: absolute;
+  border-radius: 50%;
+  /* El blur vive acá (inline por partícula) y el brillo en ::before:
+     así no pelean por la propiedad `filter`. */
+  animation-name: drift;
+  -webkit-animation-name: drift;
+  animation-duration: 6s;
+  -webkit-animation-duration: 6s;
+  animation-timing-function: ease-in-out;
+  -webkit-animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+  animation-direction: alternate;
+  -webkit-animation-direction: alternate;
+  will-change: transform;
+}
+/* Halo luminoso: parpadeo + iluminación con el mismo ritmo suave
+   de las estrellas (2–3.5s, vía --gd/--gl que pone el JS).
+   var() en longhands es seguro en Safari (el bug era en shorthand/keyframes). */
+.speck::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255,220,150,.7) 40%, transparent 70%);
+  animation-name: speckGlow;
+  -webkit-animation-name: speckGlow;
+  animation-duration: var(--gd, 2.8s);
+  -webkit-animation-duration: var(--gd, 2.8s);
+  animation-delay: var(--gl, 0s);
+  -webkit-animation-delay: var(--gl, 0s);
+  animation-timing-function: ease-in-out;
+  -webkit-animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+  will-change: opacity, filter;
+}
+@keyframes drift {
+  from { transform: translateY(-8px); }
+  to { transform: translateY(10px); }
+}
+@-webkit-keyframes drift {
+  from { -webkit-transform: translateY(-8px); transform: translateY(-8px); }
+  to { -webkit-transform: translateY(10px); transform: translateY(10px); }
+}
+/* Parpadeo de luz + iluminación: la partícula se enciende (.25→.8)
+   mientras su brillo se intensifica. Solo 22 nodos, costo GPU menor. */
+@keyframes speckGlow {
+  0%, 100% { opacity: .25; filter: brightness(.75); }
+  50% { opacity: .8; filter: brightness(1.5); }
+}
+@-webkit-keyframes speckGlow {
+  0%, 100% { opacity: .25; -webkit-filter: brightness(.75); filter: brightness(.75); }
+  50% { opacity: .8; -webkit-filter: brightness(1.5); filter: brightness(1.5); }
+}
+
+/* ── CAPA 6: texto ── */
+.layer-text { z-index: 6; display: flex; align-items: flex-end; justify-content: center; }
+.text-card {
+  margin-bottom: 7%;
+  width: 86%;
+  text-align: center;
+  padding: 16px 18px 15px;
+  border-radius: 20px;
+  background: rgba(8,8,24,.45);
+  border: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+.birthday-title {
+  font-size: clamp(26px, 7.5vw, 34px);
+  font-weight: 800;
+  letter-spacing: -.3px;
+  background: linear-gradient(180deg, #fff 20%, var(--gold) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.birthday-subtitle { margin-top: 6px; font-size: clamp(13px, 3.8vw, 15px); line-height: 1.45; color: rgba(255,255,255,.85); }
+
+/* ── Viñeta + marco ── */
+.vignette {
+  position: absolute; inset: 0; z-index: 7; pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(0,0,5,.55) 100%);
+}
+.card-frame {
+  position: absolute; inset: 0; z-index: 8; pointer-events: none;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 0 40px rgba(167,139,250,.12), inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* ── Botón música + barrita de volumen: visibles pero no invasivos ── */
+.music-wrap {
+  position: fixed;
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .6s ease;
+}
+body.revealed .music-wrap { opacity: 1; visibility: visible; }
+.music-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(8,8,24,.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: .65;
+  transition: opacity .6s ease, transform .2s ease;
+}
+.music-btn:active { transform: scale(.9); }
+/* Panel de volumen: globito de vidrio sobre el botón */
+.volume-pop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(8,8,24,.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity .25s ease, transform .25s ease, visibility .25s;
+  pointer-events: none;
+}
+.volume-pop.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.mute-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+.volume-slider {
+  width: 130px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+.volume-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,233,168,.3);
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: none;
+  box-shadow: 0 0 10px rgba(255,233,168,.6);
+}
+.volume-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,233,168,.3);
+}
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: none;
+  box-shadow: 0 0 10px rgba(255,233,168,.6);
+}
+
+/* ═══════════ FLIP 3D (frente ↔ reverso) ═══════════ */
+.flip-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform .8s cubic-bezier(.3,.7,.3,1);
+  will-change: transform;
+}
+body.flipped .flip-inner { transform: rotateY(180deg); }
+.face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.face-back {
+  transform: rotateY(180deg);
+  background: #0a0a20;
+}
+/* El parallax del reverso usa el mismo motor (data-depth);
+   profundidades bajas para que el texto siga legible. */
+.back-gradient {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 45% at 30% 15%, rgba(255,110,180,.28), transparent 70%),
+    radial-gradient(70% 55% at 75% 80%, rgba(120,80,255,.4), transparent 70%),
+    linear-gradient(180deg, #150f38 0%, #0b0b26 45%, #050512 100%);
+}
+.back-content { display: flex; align-items: center; justify-content: center; }
+.back-photo-wrap {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(160deg, var(--gold), var(--pink));
+  box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 0 18px rgba(255,200,220,.25);
+  /* Tocable (video sorpresa): las .layer tienen pointer-events:none,
+     se habilita acá. Sin insignia a propósito: que lo descubra de curiosa. */
+  pointer-events: auto;
+  cursor: pointer;
+}
+.back-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover; /* nunca deforma */
+  display: block;
+  background: #1a1440;
+}
+.back-photo-wrap.hidden { display: none; }
+.back-card {
+  width: 84%;
+  max-height: 86%;
+  overflow-y: auto;
+  text-align: center;
+  padding: 22px 20px;
+  border-radius: 20px;
+  background: rgba(8,8,24,.45);
+  border: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+.back-title {
+  font-size: clamp(22px, 6.5vw, 28px);
+  font-weight: 800;
+  background: linear-gradient(180deg, #fff 20%, var(--gold) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.back-message {
+  margin-top: 12px;
+  font-size: clamp(14px, 4vw, 16px);
+  line-height: 1.65;
+  color: rgba(255,255,255,.9);
+  white-space: pre-line;
+}
+/* Firma: mismo degradado blanco→dorado del título, estilo manuscrito a la derecha */
+.back-sign {
+  margin-top: 14px;
+  text-align: right;
+  font-size: clamp(16px, 4.5vw, 19px);
+  font-weight: 700;
+  font-style: italic;
+  background: linear-gradient(180deg, #fff 20%, var(--gold) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Botón corazón (frente): solo 🤍 latiendo ── */
+.flip-btn {
+  position: fixed;
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(8,8,24,.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .6s ease, visibility .6s;
+  animation: heartbeat 1.4s ease-in-out infinite;
+}
+body.revealed:not(.flipped) .flip-btn { opacity: .8; visibility: visible; }
+@keyframes heartbeat {
+  0%, 100% { scale: 1; }
+  25% { scale: 1.18; }
+  40% { scale: 1; }
+  55% { scale: 1.14; }
+}
+
+/* ── Botón volver (reverso) ── */
+.back-btn {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  padding: 10px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(8,8,24,.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255,255,255,.85);
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .6s ease, visibility .6s;
+}
+body.flipped .back-btn { opacity: .85; visibility: visible; }
+
+/* Pantallas chicas */
+@media (max-height: 640px) {
+  .scene { height: 74dvh; min-height: 380px; }
+  .constellation-wrap { margin-top: 6%; width: 52%; }
+  .text-card { margin-bottom: 5%; padding: 12px 14px; }
+  .back-photo-wrap { width: 84px; height: 84px; margin-bottom: 8px; }
+  .back-card { padding: 16px 14px; }
+}
+
+/* ═══════════ OVERLAY DE VIDEO (vertical, mudo) ═══════════ */
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: var(--sat-top);
+  padding-bottom: var(--sat-bottom);
+  background: rgba(4, 4, 12, .82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .35s ease, visibility .35s;
+}
+.video-overlay.open { opacity: 1; visibility: visible; }
+.back-video {
+  height: min(78dvh, 620px);
+  aspect-ratio: 9 / 16;
+  max-width: 88vw;
+  border-radius: 20px;
+  object-fit: cover;
+  background: #0a0a20;
+  border: 1px solid rgba(255,233,168,.35);
+  box-shadow: 0 24px 70px rgba(0,0,0,.65), 0 0 40px rgba(255,180,220,.18);
+}
+.video-close {
+  position: absolute;
+  top: calc(var(--sat-top) + 16px);
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(8,8,24,.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255,255,255,.85);
+  font-size: 16px;
+  cursor: pointer;
+}

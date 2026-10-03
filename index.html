@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#070714" />
+  <title>✨ Tengo algo para vos</title>
+  <link rel="stylesheet" href="style.css?v=15" />
+</head>
+
+<body>
+
+  <!-- ═══════════ PANTALLA INICIAL ═══════════ -->
+  <div id="intro" class="intro">
+    <div class="intro-inner">
+      <div class="intro-stars" aria-hidden="true"></div>
+      <p class="intro-emoji">✨</p>
+      <h1 class="intro-title">Tengo una sorpresa<br />para vos</h1>
+      <button id="openBtn" class="open-btn" type="button">
+        <span class="open-btn-label">ABRIR</span>
+      </button>
+      <p class="intro-sub">tocá para abrir</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ HINT TEMPORAL ═══════════ -->
+  <div id="hint" class="hint" aria-live="polite"></div>
+
+  <!-- ═══════════ AVISO LANDSCAPE (opcional) ═══════════ -->
+  <div id="landscapeWarn" class="landscape-warn" aria-hidden="true">
+    <span>📱 Giralo a vertical para verlo mejor ✨</span>
+  </div>
+
+  <!-- ═══════════ ESCENA 3D (frente + reverso) ═══════════ -->
+  <main class="stage" id="stage">
+    <div class="scene" id="scene">
+      <div class="flip-inner" id="flipInner">
+
+        <!-- ── CARA FRONTAL ── -->
+        <div class="face face-front">
+
+          <!-- CAPA 1 — FONDO GALAXIA · depth 0.12 -->
+          <div class="layer layer-galaxy" data-depth="0.12" aria-hidden="true">
+            <div class="galaxy-gradient"></div>
+            <!-- Reemplazable: poné tu archivo en assets/galaxy.jpg sin tocar código.
+             Si no existe, se muestra el degradado CSS automáticamente. -->
+            <img class="galaxy-img" src="assets/galaxy.jpg" alt="" onerror="this.remove()" />
+            <div class="nebula nebula-a"></div>
+            <div class="nebula nebula-b"></div>
+          </div>
+
+          <!-- CAPA 2 — ESTRELLAS LEJANAS · depth 0.28 -->
+          <div class="layer layer-stars" data-depth="0.28" aria-hidden="true">
+            <img class="stars-img" src="assets/stars.png" alt="" onerror="this.remove()" />
+            <div id="starField" class="star-field"></div>
+          </div>
+
+          <!-- CAPA 3 — CONSTELACIÓN LIBRA · depth 0.45 -->
+          <div class="layer layer-constellation" data-depth="0.45" aria-hidden="true">
+            <div class="constellation-wrap">
+              <!-- Asset independiente: reemplazá assets/constellation.svg por otro signo
+               sin modificar el código. El SVG de Libra está en assets/constellation.svg -->
+              <img class="constellation-img" src="assets/constellation.svg" alt="Constelación de Libra"
+                onerror="this.style.display='none'" />
+            </div>
+          </div>
+
+          <!-- CAPA 4 — FOTO · depth 0.75 -->
+          <div class="layer layer-photo" data-depth="0.75">
+            <div class="photo-halo" aria-hidden="true"></div>
+            <div class="photo-frame">
+              <!-- Reemplazable: poné tu PNG recortado en assets/friend.png.
+               Si aún no existe, se muestra un placeholder elegante. -->
+              <img id="friendImg" class="photo-img" src="assets/friend.png" alt="Ella" />
+              <div id="photoPlaceholder" class="photo-placeholder" aria-hidden="true">
+                <span class="photo-placeholder-emoji">✨</span>
+                <span class="photo-placeholder-text">tu foto aquí<br /><small>assets/friend.png</small></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAPA 5 — FOREGROUND · depth 0.95 -->
+          <div class="layer layer-foreground" data-depth="0.95" aria-hidden="true">
+            <img class="foreground-img" src="assets/foreground-stars.png" alt="" onerror="this.remove()" />
+            <div id="foregroundField" class="foreground-field"></div>
+          </div>
+
+          <!-- CAPA 6 — TEXTO · depth 0.20 (movimiento sutil) -->
+          <div class="layer layer-text" data-depth="0.20">
+            <div class="text-card">
+              <h2 id="birthdayTitle" class="birthday-title">Feliz cumpleaños</h2>
+              <p id="birthdaySubtitle" class="birthday-subtitle">Te deseo un muy lindo dia y que todos tus sueños se
+                hagan realidad ✨</p>
+            </div>
+          </div>
+
+        </div><!-- /face-front -->
+
+        <!-- ── CARA REVERSO (texto personal, con parallax propio) ── -->
+        <div class="face face-back">
+          <div class="layer back-bg" data-depth="0.12" aria-hidden="true">
+            <div class="back-gradient"></div>
+            <div class="nebula nebula-a"></div>
+            <div id="backStarField" class="star-field"></div>
+          </div>
+          <div class="layer back-content" data-depth="0.20">
+            <div class="back-card">
+              <!-- Foto circular: usa assets/back-photo.png si existe,
+                 si no, reutiliza friend.png. Si no hay ninguna, se oculta. -->
+              <div id="backPhotoWrap" class="back-photo-wrap hidden" aria-hidden="true">
+                <img id="backImg" class="back-photo" src="assets/back-photo.png" alt="" />
+              </div>
+              <h3 id="backTitle" class="back-title">Claw ❤️</h3>
+              <p id="backMessage" class="back-message"></p>
+              <p class="back-sign">Jonatan</p>
+            </div>
+          </div>
+        </div><!-- /face-back -->
+
+      </div><!-- /flip-inner -->
+
+      <!-- Viñeta + marco de luz (compartidos, no reaccionan) -->
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="card-frame" aria-hidden="true"></div>
+
+    </div>
+  </main>
+
+  <audio id="bgMusic" src="assets/music.mp3" loop preload="auto"></audio>
+  <div class="music-wrap" id="musicWrap">
+    <div class="volume-pop" id="volumePop" aria-hidden="true">
+      <button id="muteBtn" class="mute-btn" type="button" aria-label="Silenciar música">🔊</button>
+      <input id="volumeSlider" class="volume-slider" type="range" min="0" max="100" value="35"
+        step="1" aria-label="Volumen de la música" />
+    </div>
+    <button id="musicBtn" class="music-btn" type="button" aria-label="Volumen" aria-expanded="false">🔊</button>
+  </div>
+  <button id="flipBtn" class="flip-btn" type="button" aria-label="Leer mensaje">❤️</button>
+  <button id="backBtn" class="back-btn" type="button">volver</button>
+
+  <!-- ═══════════ VIDEO VERTICAL (mudo, la canción sigue) ═══════════ -->
+  <!-- Poné tu video vertical en assets/video.mp4. Si no existe, el tap
+       en la foto no hace nada y queda la foto. -->
+  <div id="videoOverlay" class="video-overlay" aria-hidden="true">
+    <video id="backVideo" class="back-video" src="assets/video.mp4" playsinline muted
+      preload="metadata" disablepictureinpicture></video>
+    <button id="videoClose" class="video-close" type="button" aria-label="Cerrar video">✕</button>
+  </div>
+
+  <script src="script.js?v=15"></script>
+</body>
+
+</html>
